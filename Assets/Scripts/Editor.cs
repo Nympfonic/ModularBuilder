@@ -104,6 +104,15 @@ public class Editor : MonoBehaviour
                 ResetSelection();
             }
         }
+        if (Input.GetKeyDown(KeyCode.Delete))
+        {
+            if (_selectedObject != null)
+            {
+                ObjectList.Remove(_selectedObject);
+                Destroy(_selectedObject);
+                _selectedObject = null;
+            }
+        }
     }
 
     private void ResetSelection()
