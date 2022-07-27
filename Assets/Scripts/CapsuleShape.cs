@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -6,18 +7,28 @@ namespace Assets.Scripts
     {
         private void Start()
         {
-            _shapeTemplate = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            _shapeTemplate.layer = LayerMask.NameToLayer("Ignore Raycast");
-            _shapeTemplate.GetComponent<MeshRenderer>().material.color = new Color(.5f, .5f, .5f, .5f);
-            _shapeTemplate.SetActive(false);
+            var template = GameObject.Find("Capsule Template");
+            if (template)
+            {
+                _shapeTemplate = template;
+            }
+            else
+            {
+                _shapeTemplate = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                _shapeTemplate.name = "Capsule Template";
+                _shapeTemplate.tag = "Template";
+                _shapeTemplate.layer = LayerMask.NameToLayer("Ignore Raycast");
+                _shapeTemplate.GetComponent<MeshRenderer>().material.color = new Color(.5f, .5f, .5f, .5f);
+            }
         }
 
         public override void Instantiate()
         {
-            var shape = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            shape.layer = LayerMask.NameToLayer("Canvas");
-            shape.transform.SetPositionAndRotation(_shapeTemplate.transform.position, _shapeTemplate.transform.rotation);
-            shape.GetComponent<MeshRenderer>().material.color = new Color(1f, 0.647f, 0);
+            _shape = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            _shape.layer = LayerMask.NameToLayer("Canvas");
+            _shape.transform.SetPositionAndRotation(_shapeTemplate.transform.position, _shapeTemplate.transform.rotation);
+            _shape.GetComponent<MeshRenderer>().material.color = new Color(1f, .647f, 0);
+            Editor.Instance.ObjectList.Add(_shape);
         }
     }
 }

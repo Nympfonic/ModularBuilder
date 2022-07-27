@@ -5,24 +5,28 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private float _sensitivity;
 
-    private float _rotX = 0, _rotY = 0;
-    private float _posX = 0, _posY = 0;
+    private float _rotX, _rotY;
+    private float _posX, _posY, _posZ;
 
-    // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Confined;
-        //Cursor.visible = false;
+        _rotX = transform.rotation.x;
+        _rotY = transform.rotation.y;
+        _posX = transform.position.x;
+        _posY = transform.position.y;
+        _posZ = transform.position.z;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // Rotate camera when holding right mouse button
         if (Input.GetMouseButton(1))
         {
             CameraRotation();
         }
-        if (Input.GetMouseButton(2))
+        // Move camera when holding middle mouse button, zoom in/out when scrolling mouse wheel
+        if (Input.GetMouseButton(2) || Input.GetAxis("Mouse ScrollWheel") != 0)
         {
             CameraTranslation();
         }
@@ -40,9 +44,11 @@ public class CameraController : MonoBehaviour
     {
         var right = transform.TransformDirection(Vector3.right);
         var up = transform.TransformDirection(Vector3.up);
+        var forward = transform.TransformDirection(Vector3.forward);
         _posX += Input.GetAxis("Mouse X") * _sensitivity;
         _posY += Input.GetAxis("Mouse Y") * _sensitivity;
+        _posZ += Input.GetAxis("Mouse ScrollWheel") * _sensitivity * 10;
 
-        transform.localPosition = right * -_posX + up * _posY;
+        transform.position = right * -_posX + up * -_posY + forward * _posZ;
     }
 }
