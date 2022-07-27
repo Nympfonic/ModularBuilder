@@ -40,8 +40,9 @@ public class Editor : MonoBehaviour
     private float _shapePlaceDelay;
 
     [HideInInspector]
-    public List<GameObject> ObjectList = new List<GameObject>();
-    private GameObject _selectedObject;
+    public List<GameObject> ObjectList = new();
+    private HashSet<GameObject> _selectedObjects = new();
+    private GameObject _lastSelectedObject;
 
     private void Awake()
     {
@@ -86,10 +87,16 @@ public class Editor : MonoBehaviour
                     Collider obj = canvasHit.collider;
                     if (ObjectList.Contains(obj.gameObject))
                     {
-                        ResetSelection();
-                        _selectedObject = obj.gameObject;
+                        // Allow user to select multiple objects
+                        // Reset selection if Left Ctrl is not held down
+                        if (!Input.GetKey(KeyCode.LeftControl))
+                        {
+                            ResetSelection();
+                        }
+                        _lastSelectedObject = obj.gameObject;
+                        _selectedObjects.Add(_lastSelectedObject);
                         // Highlight/Outline object
-                        _selectedObject.GetComponent<MeshRenderer>().material = HighlightMat;
+                        _lastSelectedObject.GetComponent<MeshRenderer>().material = HighlightMat;
                         // Show object edit options
                     }
                     else
@@ -106,21 +113,29 @@ public class Editor : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Delete))
         {
-            if (_selectedObject != null)
+            if (_selectedObjects.Count > 0)
             {
-                ObjectList.Remove(_selectedObject);
-                Destroy(_selectedObject);
-                _selectedObject = null;
+                foreach (var obj in _selectedObjects)
+                {
+                    ObjectList.Remove(obj);
+                    Destroy(obj);
+                }
+                _selectedObjects.Clear();
+                _lastSelectedObject = null;
             }
         }
     }
 
     private void ResetSelection()
     {
-        if (_selectedObject != null)
+        if (_selectedObjects.Count > 0)
         {
-            _selectedObject.GetComponent<MeshRenderer>().material = NormalMat;
-            _selectedObject = null;
+            foreach (var obj in _selectedObjects)
+            {
+                obj.GetComponent<MeshRenderer>().material = NormalMat;
+            }
+            _selectedObjects.Clear();
+            _lastSelectedObject = null;
         }
     }
 
