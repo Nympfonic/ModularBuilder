@@ -10,10 +10,6 @@ public class Editor : MonoBehaviour
 
     [SerializeField]
     private Camera _cam;
-    [SerializeField]
-    private LayerMask _canvasLayer;
-    [SerializeField]
-    private LayerMask _uiLayer;
 
     public enum SelectedTool
     {
@@ -35,9 +31,12 @@ public class Editor : MonoBehaviour
     private Shape _currentShape;
     private bool _canPlace;
     private bool _gridSnap;
+    private Vector3 _lastMousePos;
+    private float _lastShapePlacedTime;
+    [SerializeField]
+    private float _shapePlaceDelay;
     [HideInInspector]
     public List<GameObject> ObjectList = new List<GameObject>();
-    
 
     private void Awake()
     {
@@ -52,13 +51,6 @@ public class Editor : MonoBehaviour
 
         _shapeFactory = GetComponent<ShapeFactory>();
     }
-
-    //private void Start()
-    //{
-    //    _shapeFactory.GetShape("CUBE");
-    //    _shapeFactory.GetShape("SPHERE");
-    //    _shapeFactory.GetShape("CAPSULE");
-    //}
 
     private void Update()
     {
@@ -102,46 +94,59 @@ public class Editor : MonoBehaviour
 
     public void SetSelectTool()
     {
+        DeleteOldTemplates();
         _selectedTool = SelectedTool.SELECT;
         _selectedShape = SelectedShape.NONE;
     }
 
     private void ShapeTool()
     {
+        ShapePlaceCooldown();
         if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out RaycastHit canvasHit, Mathf.Infinity))
         {
             Vector3 point = canvasHit.point;
             
             if (_currentShape != null && _currentShape.ShapeTemplate != null)
             {
+                var currentShapeTransform = _currentShape.ShapeTemplate.transform;
                 // Snap to grid
                 if (_gridSnap)
                 {
-
+                    currentShapeTransform.position =
+                        new Vector3(
+                            Mathf.Round(point.x),
+                            Mathf.Round(point.y + currentShapeTransform.localScale.y / 2f),
+                            Mathf.Round(point.z)
+                        );
                 }
+                // Free placement
                 else
                 {
-                    _currentShape.ShapeTemplate.transform.position =
+                    currentShapeTransform.position =
                         new Vector3(
                             point.x,
-                            point.y + _currentShape.ShapeTemplate.transform.localScale.y / 2f,
+                            point.y + currentShapeTransform.localScale.y / 2f,
                             point.z
                         );
                 }
-                //_currentShape.ShapeTemplate.transform.position =
-                //    new Vector3(Mathf.Round(point.x), Mathf.Round(point.y + _currentShape.ShapeTemplate.transform.localScale.y / 2f), Mathf.Round(point.z));
 
-                
+                if ((Input.GetMouseButtonDown(0) || Input.GetMouseButton(0)) && _canPlace)
+                {
+                    CreateShape();
+                }
             }
-            //_canPlace = true;
-            if (Input.GetMouseButtonDown(0))
-            {
-                InvokeRepeating(nameof(CreateShape), 0, .05f);
-            }
-            if (Input.GetMouseButtonUp(0))
-            {
-                CancelInvoke(nameof(CreateShape));
-            }
+        }
+    }
+
+    private void ShapePlaceCooldown()
+    {
+        if (_lastShapePlacedTime + _shapePlaceDelay < Time.time && _lastMousePos != Input.mousePosition)
+        {
+            _canPlace = true;
+        }
+        else
+        {
+            _canPlace = false;
         }
     }
 
@@ -153,11 +158,21 @@ public class Editor : MonoBehaviour
         }
         else
         {
+            _lastShapePlacedTime = Time.time;
+            _lastMousePos = Input.mousePosition;
             _currentShape.Instantiate();
         }
     }
 
     public void SetShapeTool(string shape)
+    {
+        DeleteOldTemplates();
+        _currentShape = _shapeFactory.GetShape(shape.ToUpper());
+        _selectedTool = SelectedTool.SHAPE;
+        _selectedShape = (SelectedShape) Enum.Parse(typeof(SelectedShape), shape);
+    }
+
+    private void DeleteOldTemplates()
     {
         var templates = GameObject.FindGameObjectsWithTag("Template");
         if (templates.Length > 0)
@@ -167,8 +182,5 @@ public class Editor : MonoBehaviour
                 Destroy(t);
             }
         }
-        _currentShape = _shapeFactory.GetShape(shape.ToUpper());
-        _selectedTool = SelectedTool.SHAPE;
-        _selectedShape = (SelectedShape) Enum.Parse(typeof(SelectedShape), shape);
     }
 }
