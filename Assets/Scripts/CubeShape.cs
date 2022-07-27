@@ -26,7 +26,7 @@ namespace Assets.Scripts
             _shape = GameObject.CreatePrimitive(PrimitiveType.Cube);
             _shape.layer = LayerMask.NameToLayer("Canvas");
             _shape.transform.SetPositionAndRotation(_shapeTemplate.transform.position, _shapeTemplate.transform.rotation);
-            _shape.GetComponent<MeshRenderer>().material.color = new Color(1f, .647f, 0);
+            _shape.GetComponent<MeshRenderer>().material = Editor.Instance.NormalMat;
             Editor.Instance.ObjectList.Add(_shape);
         }
     }

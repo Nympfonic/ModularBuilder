@@ -11,11 +11,8 @@ public class CameraController : MonoBehaviour
     void Start()
     {
         Cursor.lockState = CursorLockMode.Confined;
-        _rotX = transform.rotation.x;
-        _rotY = transform.rotation.y;
-        _posX = transform.position.x;
-        _posY = transform.position.y;
-        _posZ = transform.position.z;
+        CameraRotation();
+        CameraTranslation();
     }
 
     void Update()

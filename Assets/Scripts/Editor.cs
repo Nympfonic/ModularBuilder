@@ -8,6 +8,9 @@ public class Editor : MonoBehaviour
 {
     public static Editor Instance { get; private set; }
 
+    public Material NormalMat;
+    public Material HighlightMat;
+
     [SerializeField]
     private Camera _cam;
 
@@ -35,8 +38,10 @@ public class Editor : MonoBehaviour
     private float _lastShapePlacedTime;
     [SerializeField]
     private float _shapePlaceDelay;
+
     [HideInInspector]
     public List<GameObject> ObjectList = new List<GameObject>();
+    private GameObject _selectedObject;
 
     private void Awake()
     {
@@ -69,26 +74,44 @@ public class Editor : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out RaycastHit canvasHit, 10))
+            if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out RaycastHit canvasHit, Mathf.Infinity))
             {
                 if (EventSystem.current.IsPointerOverGameObject())
                 {
                     Debug.Log("Cannot select object through UI");
+                    ResetSelection();
                 }
                 else
                 {
                     Collider obj = canvasHit.collider;
                     if (ObjectList.Contains(obj.gameObject))
                     {
+                        ResetSelection();
+                        _selectedObject = obj.gameObject;
                         // Highlight/Outline object
+                        _selectedObject.GetComponent<MeshRenderer>().material = HighlightMat;
                         // Show object edit options
                     }
                     else
                     {
-                        Debug.Log("No object detected");
+                        Debug.Log("No valid object detected");
+                        ResetSelection();
                     }
                 }
             }
+            else
+            {
+                ResetSelection();
+            }
+        }
+    }
+
+    private void ResetSelection()
+    {
+        if (_selectedObject != null)
+        {
+            _selectedObject.GetComponent<MeshRenderer>().material = NormalMat;
+            _selectedObject = null;
         }
     }
 
