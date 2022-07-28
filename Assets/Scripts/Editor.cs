@@ -1,12 +1,18 @@
 using Assets.Scripts;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class Editor : MonoBehaviour
 {
     public static Editor Instance { get; private set; }
+
+    private EditorMenuHandler _menuHandler;
+    private ObjectEditorHandler _objectEditorHandler;
+
+    private TMP_Text _gridSnapText;
 
     public Material NormalMat;
     public Material HighlightMat;
@@ -43,6 +49,7 @@ public class Editor : MonoBehaviour
     public List<GameObject> ObjectList = new();
     private HashSet<GameObject> _selectedObjects = new();
     private GameObject _lastSelectedObject;
+    public GameObject LastSelectedObject { get => _lastSelectedObject; }
 
     private void Awake()
     {
@@ -55,11 +62,30 @@ public class Editor : MonoBehaviour
             Instance = this;
         }
 
-        _shapeFactory = GetComponent<ShapeFactory>();
+        _menuHandler = gameObject.AddComponent<EditorMenuHandler>();
+        _objectEditorHandler = gameObject.AddComponent<ObjectEditorHandler>();
+
+        _shapeFactory = gameObject.AddComponent<ShapeFactory>();
+
+        _gridSnapText = GameObject.Find("Grid Snap Text").GetComponent<TMP_Text>();
     }
 
     private void Update()
     {
+        // Spacebar to toggle Snap to Grid
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _gridSnap = !_gridSnap;
+            if (_gridSnap)
+            {
+                _gridSnapText.text = "Snap to Grid: On";
+            }
+            else
+            {
+                _gridSnapText.text = "Snap to Grid: Off";
+            }
+        }
+
         switch (_selectedTool)
         {
             case SelectedTool.SELECT:
@@ -77,12 +103,7 @@ public class Editor : MonoBehaviour
         {
             if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out RaycastHit canvasHit, Mathf.Infinity))
             {
-                if (EventSystem.current.IsPointerOverGameObject())
-                {
-                    Debug.Log("Cannot select object through UI");
-                    ResetSelection();
-                }
-                else
+                if (!EventSystem.current.IsPointerOverGameObject())
                 {
                     Collider obj = canvasHit.collider;
                     if (ObjectList.Contains(obj.gameObject))
@@ -98,17 +119,25 @@ public class Editor : MonoBehaviour
                         // Highlight/Outline object
                         _lastSelectedObject.GetComponent<MeshRenderer>().material = HighlightMat;
                         // Show object edit options
+                        // For first sprint: only if one object is selected
+                        if (_selectedObjects.Count == 1)
+                        {
+                            _objectEditorHandler.EnableObjectEditor();
+                        }
+                        else
+                        {
+                            if (!EventSystem.current.IsPointerOverGameObject())
+                            {
+                                _objectEditorHandler.DisableObjectEditor();
+                            }
+                        }
+                        
                     }
                     else
                     {
-                        Debug.Log("No valid object detected");
                         ResetSelection();
                     }
                 }
-            }
-            else
-            {
-                ResetSelection();
             }
         }
         if (Input.GetKeyDown(KeyCode.Delete))
@@ -126,7 +155,7 @@ public class Editor : MonoBehaviour
         }
     }
 
-    private void ResetSelection()
+    public void ResetSelection()
     {
         if (_selectedObjects.Count > 0)
         {
@@ -136,6 +165,7 @@ public class Editor : MonoBehaviour
             }
             _selectedObjects.Clear();
             _lastSelectedObject = null;
+            _objectEditorHandler.DisableObjectEditor();
         }
     }
 
@@ -149,15 +179,11 @@ public class Editor : MonoBehaviour
     private void ShapeTool()
     {
         ShapePlaceCooldown();
-        // Spacebar to toggle Snap to Grid
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            _gridSnap = !_gridSnap;
-        }
+
         if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out RaycastHit canvasHit, Mathf.Infinity))
         {
             Vector3 point = canvasHit.point;
-            
+
             if (_currentShape != null && _currentShape.ShapeTemplate != null)
             {
                 var currentShapeTransform = _currentShape.ShapeTemplate.transform;
@@ -169,7 +195,7 @@ public class Editor : MonoBehaviour
                         currentShapeTransform.position =
                             new Vector3(
                                 Mathf.Round(point.x),
-                                Mathf.Round(point.y + (currentShapeTransform.localScale.y / 2f) * capsuleCol.height),
+                                Mathf.Round(point.y) + (currentShapeTransform.localScale.y / 2f) * capsuleCol.height,
                                 Mathf.Round(point.z)
                             );
                     }
@@ -178,7 +204,7 @@ public class Editor : MonoBehaviour
                         currentShapeTransform.position =
                             new Vector3(
                                 Mathf.Round(point.x),
-                                Mathf.Round(point.y + currentShapeTransform.localScale.y / 2f),
+                                Mathf.Round(point.y) + currentShapeTransform.localScale.y / 2f,
                                 Mathf.Round(point.z)
                             );
                     }
