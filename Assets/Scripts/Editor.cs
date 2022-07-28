@@ -33,7 +33,7 @@ public class Editor : MonoBehaviour
     public SelectedShape _selectedShape = SelectedShape.NONE;
     private Shape _currentShape;
     private bool _canPlace;
-    private bool _gridSnap;
+    private bool _gridSnap = false;
     private Vector3 _lastMousePos;
     private float _lastShapePlacedTime;
     [SerializeField]
@@ -149,6 +149,11 @@ public class Editor : MonoBehaviour
     private void ShapeTool()
     {
         ShapePlaceCooldown();
+        // Spacebar to toggle Snap to Grid
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _gridSnap = !_gridSnap;
+        }
         if (Physics.Raycast(_cam.ScreenPointToRay(Input.mousePosition), out RaycastHit canvasHit, Mathf.Infinity))
         {
             Vector3 point = canvasHit.point;
@@ -199,11 +204,7 @@ public class Editor : MonoBehaviour
 
     private void CreateShape()
     {
-        if (EventSystem.current.IsPointerOverGameObject())
-        {
-            Debug.Log("Cannot place object through UI");
-        }
-        else
+        if (!EventSystem.current.IsPointerOverGameObject())
         {
             _lastShapePlacedTime = Time.time;
             _lastMousePos = Input.mousePosition;
