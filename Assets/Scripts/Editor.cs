@@ -150,8 +150,9 @@ public class Editor : MonoBehaviour
                     Destroy(obj);
                 }
                 _selectedObjects.Clear();
-                _lastSelectedObject = null;
             }
+            _lastSelectedObject = null;
+            _objectEditorHandler.DisableObjectEditor();
         }
     }
 
@@ -161,12 +162,15 @@ public class Editor : MonoBehaviour
         {
             foreach (var obj in _selectedObjects)
             {
-                obj.GetComponent<MeshRenderer>().material = NormalMat;
+                if (obj != null)
+                {
+                    obj.GetComponent<MeshRenderer>().material = NormalMat;
+                }
             }
             _selectedObjects.Clear();
-            _lastSelectedObject = null;
-            _objectEditorHandler.DisableObjectEditor();
         }
+        _lastSelectedObject = null;
+        _objectEditorHandler.DisableObjectEditor();
     }
 
     public void SetSelectTool()

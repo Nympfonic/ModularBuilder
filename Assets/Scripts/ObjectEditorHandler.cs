@@ -77,9 +77,9 @@ public class ObjectEditorHandler : MonoBehaviour
                 _posY.text = _lastSelectedObject.transform.position.y.ToString();
                 _posZ.text = _lastSelectedObject.transform.position.z.ToString();
 
-                _rotX.text = _lastSelectedObject.transform.rotation.x.ToString();
-                _rotY.text = _lastSelectedObject.transform.rotation.y.ToString();
-                _rotZ.text = _lastSelectedObject.transform.rotation.z.ToString();
+                _rotX.text = _lastSelectedObject.transform.eulerAngles.x.ToString();
+                _rotY.text = _lastSelectedObject.transform.eulerAngles.y.ToString();
+                _rotZ.text = _lastSelectedObject.transform.eulerAngles.z.ToString();
 
                 _scaleX.text = _lastSelectedObject.transform.localScale.x.ToString();
                 _scaleY.text = _lastSelectedObject.transform.localScale.y.ToString();
@@ -144,11 +144,11 @@ public class ObjectEditorHandler : MonoBehaviour
     {
         if (float.TryParse(input, out float value))
         {
-            _lastSelectedObject.transform.rotation =
-                Quaternion.Euler(
+            _lastSelectedObject.transform.eulerAngles =
+                new Vector3(
                     value,
-                    _lastSelectedObject.transform.rotation.y,
-                    _lastSelectedObject.transform.rotation.z
+                    _lastSelectedObject.transform.eulerAngles.y,
+                    _lastSelectedObject.transform.eulerAngles.z
                 );
         }
     }
@@ -157,11 +157,11 @@ public class ObjectEditorHandler : MonoBehaviour
     {
         if (float.TryParse(input, out float value))
         {
-            _lastSelectedObject.transform.rotation =
-                Quaternion.Euler(
-                    _lastSelectedObject.transform.rotation.x,
+            _lastSelectedObject.transform.eulerAngles =
+                new Vector3(
+                    _lastSelectedObject.transform.eulerAngles.x,
                     value,
-                    _lastSelectedObject.transform.rotation.z
+                    _lastSelectedObject.transform.eulerAngles.z
                 );
         }
     }
@@ -170,10 +170,10 @@ public class ObjectEditorHandler : MonoBehaviour
     {
         if (float.TryParse(input, out float value))
         {
-            _lastSelectedObject.transform.rotation =
-                Quaternion.Euler(
-                    _lastSelectedObject.transform.rotation.x,
-                    _lastSelectedObject.transform.rotation.y,
+            _lastSelectedObject.transform.eulerAngles =
+                new Vector3(
+                    _lastSelectedObject.transform.eulerAngles.x,
+                    _lastSelectedObject.transform.eulerAngles.y,
                     value
                 );
         }
