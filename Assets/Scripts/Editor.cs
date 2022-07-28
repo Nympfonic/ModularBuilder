@@ -164,22 +164,46 @@ public class Editor : MonoBehaviour
                 // Snap to grid
                 if (_gridSnap)
                 {
-                    currentShapeTransform.position =
-                        new Vector3(
-                            Mathf.Round(point.x),
-                            Mathf.Round(point.y + currentShapeTransform.localScale.y / 2f),
-                            Mathf.Round(point.z)
-                        );
+                    if (currentShapeTransform.TryGetComponent(out CapsuleCollider capsuleCol))
+                    {
+                        currentShapeTransform.position =
+                            new Vector3(
+                                Mathf.Round(point.x),
+                                Mathf.Round(point.y + (currentShapeTransform.localScale.y / 2f) * capsuleCol.height),
+                                Mathf.Round(point.z)
+                            );
+                    }
+                    else
+                    {
+                        currentShapeTransform.position =
+                            new Vector3(
+                                Mathf.Round(point.x),
+                                Mathf.Round(point.y + currentShapeTransform.localScale.y / 2f),
+                                Mathf.Round(point.z)
+                            );
+                    }
                 }
                 // Free placement
                 else
                 {
-                    currentShapeTransform.position =
-                        new Vector3(
-                            point.x,
-                            point.y + currentShapeTransform.localScale.y / 2f,
-                            point.z
-                        );
+                    if (currentShapeTransform.TryGetComponent(out CapsuleCollider capsuleCol))
+                    {
+                        currentShapeTransform.position =
+                            new Vector3(
+                                point.x,
+                                point.y + (currentShapeTransform.localScale.y / 2f) * capsuleCol.height,
+                                point.z
+                            );
+                    }
+                    else
+                    {
+                        currentShapeTransform.position =
+                            new Vector3(
+                                point.x,
+                                point.y + currentShapeTransform.localScale.y / 2f,
+                                point.z
+                            );
+                    }
                 }
 
                 if ((Input.GetMouseButtonDown(0) || Input.GetMouseButton(0)) && _canPlace)
